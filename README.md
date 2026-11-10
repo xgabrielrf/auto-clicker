@@ -18,10 +18,12 @@ Dependências: [`customtkinter`](https://github.com/TomSchimansky/CustomTkinter)
 
 A janela principal é compacta (300 px de largura), **abre sempre no centro da tela** e tem:
 
-- **Menu superior** com `Options`, `Repeat` e `Recording`. Cada item abre **uma janela própria** ao lado da principal (clicar de novo apenas a traz para frente; fechar só esconde, nada se perde).
+- **Menu superior** com `Options`, `Repeat` e `Recording`. Cada item abre **uma janela própria** ao lado da principal (só uma por vez; fechar só esconde, nada se perde).
 - **Botão grande "Press F8 to click"** (Settings). Clique nele para abrir a janela *Hotkey Setting* e trocar a tecla. Durante a execução o texto vira "Press F8 to stop".
 - **Versão** (ex.: `v1.0.0`) em cinza discreto, no canto direito do menu superior.
 - **Barra de status** no rodapé: `Idle`, `Running · N clicks` e mensagens de aviso/erro.
+
+**Uma janela por vez:** Options, Repeat, Recording e Hotkey Setting nunca abrem juntas. Enquanto uma delas está aberta, o clicker fica **desabilitado**: a hotkey não inicia nada, o botão principal e o menu ficam acinzentados e, se ele estiver rodando, é parado ao abrir a janela. Ao fechar a janela (X, Esc, Ok/Cancel) tudo volta ao normal.
 
 O clicker é iniciado e parado **pela hotkey** (padrão **F8**), que funciona globalmente, mesmo com o app em segundo plano.
 
