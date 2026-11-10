@@ -1,0 +1,15 @@
+# artefatos de build (o .exe vai para o GitHub Releases, não para o repositório)
+dist/
+build/
+*.spec
+*.exe
+
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# estado local gravado pelo programa
+auto-clicker-state.json
+auto-clicker-state.json.tmp
+auto-clicker-state.json.corrupt
