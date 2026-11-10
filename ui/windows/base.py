@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import tkinter
+from typing import Callable, Optional
 
 import customtkinter as ctk
 
@@ -19,6 +20,7 @@ class ToolWindow(ctk.CTkToplevel):
     def __init__(self, master, title: str, width: int) -> None:
         super().__init__(master, fg_color=theme.BG)
         self.withdraw()
+        self.on_hide: Optional[Callable[[], None]] = None   # o app usa para reabilitar o clicker
         self.title(title)
         self.resizable(False, False)
         self.transient(master)
@@ -47,7 +49,10 @@ class ToolWindow(ctk.CTkToplevel):
         self.focus_force()
 
     def hide(self) -> None:
+        was_visible = self.visible
         self.withdraw()
+        if was_visible and self.on_hide:
+            self.on_hide()
 
     def _place_beside_master(self) -> None:
         main = self.master
