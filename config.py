@@ -1,7 +1,7 @@
 """Constantes e valores padrão do aplicativo."""
 
 APP_NAME = "Auto Clicker"
-APP_VERSION = "1.0.0"                 # única fonte da versão (build, nome do .exe e tag do git)
+APP_VERSION = "1.0.1"                # única fonte da versão (build, nome do .exe e tag do git)
 APP_ID = "xgabr.autoclicker"          # AppUserModelID (agrupamento na barra de tarefas)
 
 # Larguras das janelas (a altura de todas segue o conteúdo)
