@@ -20,6 +20,7 @@ from .icon import apply_icon, set_app_id
 from .menubar import MenuBar
 from .point_picker import PointPicker
 from .widgets import red_button
+from .windows.base import ToolWindow
 from .windows.hotkey import HotkeyWindow
 from .windows.options import OptionsWindow
 from .windows.recording import RecordingWindow
@@ -56,6 +57,7 @@ class App(ctk.CTk):
         self._counting_label = "clicks"
         self._picking = False
         self._recording_was_open = False
+        self._active_menu: Optional[ToolWindow] = None   # janela de menu aberta (só uma por vez)
         self._restoring = True                           # evita regravar enquanto restaura o estado
         self._save_job: Optional[str] = None
 
@@ -87,13 +89,18 @@ class App(ctk.CTk):
         )
         self._hotkey_window = HotkeyWindow(self, self._hotkey, self._post, self._apply_hotkey)
 
-        MenuBar(self, [
-            ("Options", self._options.show),
-            ("Repeat", self._repeat.show),
-            ("Recording", self._recording.show),
-        ], trailing=f"v{config.APP_VERSION}").pack(fill="x")
+        for window in (self._options, self._repeat, self._recording, self._hotkey_window):
+            window.on_hide = self._menu_closed
 
-        self._main_button = red_button(self, "", self._hotkey_window.open, height=56)
+        self._menubar = MenuBar(self, [
+            ("Options", lambda: self._open_menu(self._options)),
+            ("Repeat", lambda: self._open_menu(self._repeat)),
+            ("Recording", lambda: self._open_menu(self._recording)),
+        ], trailing=f"v{config.APP_VERSION}")
+        self._menubar.pack(fill="x")
+
+        self._main_button = red_button(
+            self, "", lambda: self._open_menu(self._hotkey_window, self._hotkey_window.open), height=56)
         self._main_button.pack(fill="x", padx=14, pady=(14, 8))
 
         self._status = ctk.CTkLabel(self, text="", anchor="w", font=theme.font(theme.FONT_SMALL),
@@ -114,6 +121,33 @@ class App(ctk.CTk):
         y = max((self.winfo_screenheight() - outer_h) // 2, 0)
         tkinter.Wm.wm_geometry(self, f"+{x}+{y}")
         self.deiconify()
+
+    # ---------------------------------------------------------------- menus (um por vez)
+    def _open_menu(self, window: ToolWindow, opener: Optional[Callable[[], None]] = None) -> None:
+        """Abre uma janela de menu. Só uma por vez; enquanto aberta, o clicker fica desabilitado."""
+        if self._picking:
+            return
+        if self._active_menu is not None:
+            self._active_menu.show()                     # já há uma aberta: só traz para frente
+            return
+        if self._engine.running:
+            self._engine.stop()
+        self._active_menu = window
+        self._set_locked(True)
+        (opener or window.show)()
+
+    def _menu_closed(self) -> None:
+        self._active_menu = None
+        self._set_locked(False)
+
+    def _set_locked(self, locked: bool) -> None:
+        self._menubar.set_enabled(not locked)
+        if locked:
+            self._main_button.configure(state="disabled", fg_color=theme.ELEVATED)
+            self._set_status("Clicker disabled while a window is open.")
+        else:
+            self._main_button.configure(state="normal", fg_color=theme.RED)
+            self._set_status("Idle")
 
     def _refresh_main_button(self) -> None:
         verb = "stop" if self._engine.running else "click"
@@ -175,8 +209,8 @@ class App(ctk.CTk):
 
     # ---------------------------------------------------------------- Start / Stop (hotkey)
     def _toggle(self) -> None:
-        if self._picking:
-            return
+        if self._picking or self._active_menu is not None:
+            return                                       # clicker desabilitado com menu aberto
         if self._engine.running:
             self._engine.stop()
             return
